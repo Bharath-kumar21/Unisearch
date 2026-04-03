@@ -1,17 +1,32 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // In a real app, this would validate credentials via an API
-        console.log("Logging in with:", email, password);
-        // Redirect to profile upon login
-        navigate("/profile");
+        setError("");
+        setSubmitting(true);
+
+        try {
+            const result = await login(email, password);
+            if (result.success) {
+                navigate("/profile");
+            } else {
+                setError(result.message || "Invalid email or password.");
+            }
+        } catch (err) {
+            setError("Unable to connect to the server. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -22,6 +37,12 @@ function Login() {
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>Welcome Back</h2>
                     <p className="text-secondary" style={{ fontSize: '0.875rem' }}>Enter your credentials to access your account</p>
                 </div>
+
+                {error && (
+                    <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '0.75rem', borderRadius: 'var(--radius)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                        {error}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div>
@@ -51,8 +72,8 @@ function Login() {
                         />
                     </div>
 
-                    <button type="submit" className="btn-black" style={{ width: '100%', padding: '0.75rem', marginTop: '0.5rem' }}>
-                        Login
+                    <button type="submit" className="btn-black" disabled={submitting} style={{ width: '100%', padding: '0.75rem', marginTop: '0.5rem', opacity: submitting ? 0.7 : 1 }}>
+                        {submitting ? "Logging in..." : "Login"}
                     </button>
                 </form>
 

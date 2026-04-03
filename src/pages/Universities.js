@@ -1,20 +1,31 @@
+import './Universities.css';
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import UniversityCard from "../components/UniversityCard";
-import universitiesData from "../data/universities.json";
+import { useUniversity } from "../context/UniversityContext";
 
 function Universities() {
   const location = useLocation();
   const initState = location.state || {};
+  const { universities, loading } = useUniversity();
 
   const [search, setSearch] = useState(initState.initSearch || "");
   const [sortOption, setSortOption] = useState("Ranking");
 
   // Filter states
+  const [selectedExams, setSelectedExams] = useState(
+    initState.initExam ? [initState.initExam] : []
+  );
   const [selectedStates, setSelectedStates] = useState([]);
+  const [selectedCETStates, setSelectedCETStates] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedNAACs, setSelectedNAACs] = useState(initState.initNAAC ? [initState.initNAAC] : []);
   const [selectedFees, setSelectedFees] = useState(initState.initFees ? [initState.initFees] : []);
+  const [rankInput, setRankInput] = useState(initState.initRank || "");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   // Update states if location state changes (e.g. from nav click again)
   useEffect(() => {
@@ -22,21 +33,66 @@ function Universities() {
       if (location.state.initSearch) setSearch(location.state.initSearch);
       if (location.state.initNAAC) setSelectedNAACs([location.state.initNAAC]);
       if (location.state.initFees) setSelectedFees([location.state.initFees]);
+      if (location.state.initExam) setSelectedExams([location.state.initExam]);
+      if (location.state.initRank) setRankInput(location.state.initRank);
     }
   }, [location.state]);
 
+  // Clear CET states if State CET is unmarked
+  useEffect(() => {
+    if (!selectedExams.includes("State CET")) {
+      setSelectedCETStates([]);
+    }
+  }, [selectedExams]);
+
+  // Helper to parse "Top 500" => 500, "Top 15000" => 15000, etc.
+  const parseRankCutoff = (rankStr) => {
+    if (!rankStr) return null;
+    const match = rankStr.match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : null;
+  };
+
   // Filtering logic
-  const filtered = universitiesData
+  const filtered = universities
     .filter((u) => {
       const matchesSearch =
-        u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.location.toLowerCase().includes(search.toLowerCase());
+        (u.name && u.name.toLowerCase().includes(search.toLowerCase())) ||
+        (u.location && u.location.toLowerCase().includes(search.toLowerCase()));
 
-      const stateMatch = selectedStates.length === 0 || selectedStates.some(s => u.location.includes(s));
+      const examMatch = selectedExams.length === 0 || (u.required_exam && selectedExams.some(exam => {
+        const examLower = exam.toLowerCase();
+        const reqLower = u.required_exam.toLowerCase();
+
+        if (reqLower === examLower) {
+          // If the exam is State CET, require the university to be in one of the selected CET states (if any are selected)
+          if (examLower === "state cet" && selectedCETStates.length > 0) {
+            return selectedCETStates.some(s => u.location && u.location.toLowerCase().includes(s.toLowerCase()));
+          }
+          return true;
+        }
+        return false;
+      }));
+
+      // Rank-based filtering: user's rank must be <= the university's cutoff
+      let rankMatch = true;
+      if (rankInput) {
+        const userRank = parseInt(rankInput, 10);
+        if (!isNaN(userRank)) {
+          const cutoff = parseRankCutoff(u.average_rank_required);
+          if (cutoff !== null) {
+            rankMatch = userRank <= cutoff;
+          } else {
+            // If the university has no parseable cutoff, exclude it when rank filter is active
+            rankMatch = false;
+          }
+        }
+      }
+
+      const stateMatch = selectedStates.length === 0 || (u.location && selectedStates.some(s => u.location.toLowerCase().includes(s.toLowerCase())));
       const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(u.type);
 
       // NAAC derivation matching the card
-      const naacGrade = parseInt(u.ranking) <= 10 ? "A++" : (parseInt(u.ranking) <= 30 ? "A+" : "A");
+      const naacGrade = (u.ranking && parseInt(u.ranking) <= 10) ? "A++" : ((u.ranking && parseInt(u.ranking) <= 30) ? "A+" : "A");
       const naacMatch = selectedNAACs.length === 0 || selectedNAACs.includes(naacGrade);
 
       let numericFees = 0;
@@ -52,10 +108,10 @@ function Universities() {
         if (selectedFees.includes("₹3L - ₹5L") && numericFees > 300000 && numericFees <= 500000) feesMatch = true;
         if (selectedFees.includes("Above ₹5L") && numericFees > 500000) feesMatch = true;
       } else if (selectedFees.length > 0 && !u.fees) {
-        feesMatch = false; // If fees are unlisted, don't show when fee filters are active unless we want to
+        feesMatch = false;
       }
 
-      return matchesSearch && stateMatch && typeMatch && naacMatch && feesMatch;
+      return matchesSearch && examMatch && rankMatch && stateMatch && typeMatch && naacMatch && feesMatch;
     })
     .sort((a, b) => {
       if (sortOption === "Ranking") {
@@ -72,7 +128,15 @@ function Universities() {
     } else {
       setter([...currentState, value]);
     }
+    setCurrentPage(1); // Reset to first page when filters change
   };
+
+  // Pagination logic
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const currentItems = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="container page-layout">
@@ -82,6 +146,59 @@ function Universities() {
           <span>⚙️</span>
           <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Filters</h2>
         </div>
+
+        {/* Rank Filter */}
+        <div className="filter-section">
+          <div className="filter-title">Your Rank</div>
+          <input
+            type="number"
+            placeholder="Enter your rank"
+            value={rankInput}
+            onChange={(e) => { setRankInput(e.target.value); setCurrentPage(1); }}
+            min="1"
+            style={{
+              width: '100%',
+              padding: '0.5rem 0.75rem',
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+              fontSize: '0.9rem',
+              outline: 'none',
+              fontFamily: 'inherit'
+            }}
+          />
+        </div>
+
+        <div className="filter-section">
+          <div className="filter-title">Exam Type</div>
+          {[
+            "JEE Main", "JEE Advanced", "CUET", "State CET", "Institute Specific"
+          ].map(exam => (
+            <label key={exam} className="checkbox-label">
+              <input
+                type="checkbox"
+                onChange={() => handleCheckboxChange(setSelectedExams, exam, selectedExams)}
+                checked={selectedExams.includes(exam)}
+              /> {exam}
+            </label>
+          ))}
+        </div>
+
+        {selectedExams.includes("State CET") && (
+          <div className="filter-section" style={{ marginLeft: '1rem', marginTop: '-0.5rem', paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)' }}>
+            <div className="filter-title" style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Select CET State</div>
+            {[
+              "Maharashtra", "West Bengal", "Tamil Nadu", "Telangana", "Andhra Pradesh", "Karnataka"
+            ].map(state => (
+              <label key={state} className="checkbox-label" style={{ fontSize: '0.9rem' }}>
+                <input
+                  type="checkbox"
+                  onChange={() => handleCheckboxChange(setSelectedCETStates, state, selectedCETStates)}
+                  checked={selectedCETStates.includes(state)}
+                /> {state}
+              </label>
+            ))}
+          </div>
+        )}
 
         <div className="filter-section">
           <div className="filter-title">State / City</div>
@@ -158,7 +275,7 @@ function Universities() {
         </div>
 
         <div className="results-header" style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--white)' }}>
-          <div>Showing 1-{Math.min(filtered.length, 9)} of {filtered.length} results</div>
+          <div>Showing {filtered.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length} results</div>
           <div className="flex-center" style={{ gap: '0.5rem' }}>
             <span>Sort by:</span>
             <select
@@ -172,27 +289,76 @@ function Universities() {
           </div>
         </div>
 
-        <div className="grid-cols-3" style={{ marginTop: '1.5rem', marginBottom: '3rem' }}>
-          {filtered.slice(0, 9).map((uni) => ( // Only show first 9 for UI mock pagination
-            <UniversityCard key={uni.id} uni={uni} />
-          ))}
-        </div>
-
-        {filtered.length === 0 && (
+        {loading ? (
           <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-secondary)" }}>
-            <h3>No universities found</h3>
-            <p>Try adjusting your search query or filters.</p>
+            <h3>Loading universities...</h3>
           </div>
-        )}
+        ) : (
+          <>
+            <div className="grid-cols-3" style={{ marginTop: '1.5rem', marginBottom: '3rem' }}>
+              {currentItems.map((uni) => (
+                <UniversityCard key={uni._id} uni={uni} />
+              ))}
+            </div>
 
-        {filtered.length > 0 && (
-          <div className="flex-center" style={{ gap: '0.5rem', marginTop: '2rem' }}>
-            <button className="btn-black" style={{ padding: '0.5rem 1rem' }}>1</button>
-            <button className="btn-outline" style={{ width: 'auto', padding: '0.4rem 1rem' }}>2</button>
-            <button className="btn-outline" style={{ width: 'auto', padding: '0.4rem 1rem' }}>3</button>
-            <span style={{ margin: '0 0.5rem', color: 'var(--text-muted)' }}>...</span>
-            <button className="btn-outline" style={{ width: 'auto', padding: '0.4rem 1rem' }}>10</button>
-          </div>
+            {filtered.length === 0 && (
+              <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-secondary)" }}>
+                <h3>No universities found</h3>
+                <p>Try adjusting your search query or filters.</p>
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex-center" style={{ gap: '0.5rem', marginTop: '2rem' }}>
+                <button
+                  className="btn-outline"
+                  style={{ width: 'auto', padding: '0.4rem 1rem' }}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </button>
+
+                {[...Array(totalPages)].map((_, index) => {
+                  const pageNumber = index + 1;
+                  // Show current page, first, last, and pages adjacent to current
+                  if (
+                    pageNumber === 1 ||
+                    pageNumber === totalPages ||
+                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNumber}
+                        className={currentPage === pageNumber ? "btn-black" : "btn-outline"}
+                        style={{ width: 'auto', padding: '0.4rem 1rem' }}
+                        onClick={() => setCurrentPage(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  }
+                  // Show ellipsis for gaps
+                  if (
+                    pageNumber === currentPage - 2 ||
+                    pageNumber === currentPage + 2
+                  ) {
+                    return <span key={pageNumber} style={{ margin: '0 0.5rem', color: 'var(--text-muted)' }}>...</span>;
+                  }
+                  return null;
+                })}
+
+                <button
+                  className="btn-outline"
+                  style={{ width: 'auto', padding: '0.4rem 1rem' }}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

@@ -1,0 +1,209 @@
+/* ─── University Card ─── */
+.uni-card {
+  background-color: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.uni-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  transform: translateY(-4px);
+  border-color: transparent;
+}
+
+/* ─── Card Header ─── */
+.card-header {
+  padding: 1.25rem 1.25rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  flex: 1;
+}
+
+.save-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.15rem;
+  padding: 0.3rem;
+  border-radius: 6px;
+  transition: background 0.2s ease, transform 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.save-btn:hover {
+  background: var(--hover-bg);
+  transform: scale(1.1);
+}
+
+/* ─── Card Body ─── */
+.card-body {
+  padding: 0 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ─── Location + NAAC row ─── */
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.card-location {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.card-location .loc-icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.naac-badge {
+  background-color: var(--black);
+  color: var(--white);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ─── Stats (Fees) ─── */
+.card-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  background: var(--hover-bg);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  margin: 0;
+}
+
+.card-stats span {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.card-stats strong {
+  color: var(--text-primary);
+  font-weight: 700;
+  margin-left: 0.3rem;
+}
+
+/* ─── Branches Section ─── */
+.card-branches {
+  margin: 0;
+  padding-top: 0.6rem;
+  font-size: 0.82rem;
+}
+
+.branch-title {
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+  display: block;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.branch-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  color: var(--text-secondary);
+  padding: 0.15rem 0;
+}
+
+.branch-item:last-child {
+  margin-bottom: 0;
+}
+
+.branch-name {
+  max-width: 65%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.branch-cutoff {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Card Footer (Buttons) ─── */
+.card-footer {
+  padding: 1rem 1.25rem 1.25rem;
+  margin-top: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.card-footer .btn-outline,
+.card-footer .btn-black {
+  flex: 1;
+  text-align: center;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.card-footer .btn-outline {
+  border: 1.5px solid var(--border-color);
+  background: var(--white);
+  color: var(--text-primary);
+}
+
+.card-footer .btn-outline:hover {
+  background: var(--hover-bg);
+  border-color: var(--text-muted);
+}
+
+.card-footer .btn-black {
+  background: var(--black);
+  color: var(--white);
+  border: 1.5px solid var(--black);
+}
+
+.card-footer .btn-black:hover {
+  background: #262626;
+  border-color: #262626;
+}
+
+/* ─── Divider line between body and footer ─── */
+.card-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.5rem 1.25rem 0;
+}

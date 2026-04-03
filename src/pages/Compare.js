@@ -1,8 +1,12 @@
+import './Compare.css';
 import React, { useState } from "react";
-import universitiesData from "../data/universities.json";
+import { useUniversity } from "../context/UniversityContext";
 
 function Compare() {
+  const { universities, loading } = useUniversity();
   const [selectedIds, setSelectedIds] = useState(["1", "2", ""]); // Default first two selected just to show
+  const [dropdownOpen, setDropdownOpen] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleSelect = (index, value) => {
     const newSelected = [...selectedIds];
@@ -16,7 +20,9 @@ function Compare() {
     setSelectedIds(newSelected);
   };
 
-  const universities = selectedIds.map(id => id ? universitiesData.find(u => u.id === parseInt(id)) : null);
+  if (loading) return <div style={{ textAlign: "center", padding: "3rem" }}>Loading universities...</div>;
+
+  const selectedUniversities = selectedIds.map(id => id ? universities.find(u => u._id === id) : null);
 
   const formatNAAC = (rank) => parseInt(rank) <= 10 ? 'A++' : (parseInt(rank) <= 30 ? 'A+' : 'A');
   const formatPlacement = (rank) => Math.max(75, 100 - parseInt(rank)) + '%';
@@ -28,35 +34,61 @@ function Compare() {
         <p>Side-by-side comparison of selected universities</p>
       </div>
 
-      <div style={{ background: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border-color)", overflow: "hidden" }}>
+      <div style={{ background: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border-color)", position: "relative" }}>
         <table className="compare-table">
           <thead>
             <tr>
               <th>Criteria</th>
               {[0, 1, 2].map((i) => (
                 <th key={i} style={{ width: "26.6%" }}>
-                  {universities[i] ? (
+                  {selectedUniversities[i] ? (
                     <div className="uni-header-card">
                       <div className="flex-between" style={{ width: '100%', alignItems: 'flex-start' }}>
                         <div className="uni-header-image"></div>
                         <button className="close-btn" onClick={() => removeUniversity(i)}>×</button>
                       </div>
-                      <div className="uni-header-name">{universities[i].name}</div>
+                      <div className="uni-header-name">{selectedUniversities[i].name}</div>
                     </div>
                   ) : (
-                    <div className="add-uni-card">
+                    <div className="add-uni-card" onClick={() => { setDropdownOpen(i); setSearchTerm(""); }}>
                       <span style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>+</span>
                       <span>Add University</span>
-                      <select
-                        style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', left: 0, top: 0 }}
-                        value={selectedIds[i]}
-                        onChange={(e) => handleSelect(i, e.target.value)}
-                      >
-                        <option value="">Select University</option>
-                        {universitiesData.map((uni) => (
-                          <option key={uni.id} value={uni.id}>{uni.name}</option>
-                        ))}
-                      </select>
+
+                      {dropdownOpen === i && (
+                        <div className="search-dropdown" onClick={e => e.stopPropagation()}>
+                          <div className="search-dropdown-header">
+                            <input
+                              type="text"
+                              className="search-input"
+                              placeholder="Search universities..."
+                              value={searchTerm}
+                              autoFocus
+                              onChange={e => setSearchTerm(e.target.value)}
+                            />
+                            <button className="close-dropdown-btn" onClick={(e) => { e.stopPropagation(); setDropdownOpen(null); }}>×</button>
+                          </div>
+                          <div className="search-options">
+                            {universities
+                              .filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                              .map((uni) => (
+                                <div
+                                  key={uni._id}
+                                  className="search-option"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelect(i, uni._id);
+                                    setDropdownOpen(null);
+                                  }}
+                                >
+                                  {uni.name}
+                                </div>
+                              ))}
+                            {universities.filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                              <div className="search-no-results">No universities found</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </th>
@@ -66,31 +98,39 @@ function Compare() {
           <tbody>
             <tr>
               <td>Location</td>
-              {universities.map((uni, i) => <td key={i}>{uni ? uni.location.split(',')[0] : "-"}</td>)}
+              {selectedUniversities.map((uni, i) => <td key={i}>{uni ? uni.location.split(',')[0] : "-"}</td>)}
             </tr>
             <tr>
               <td>NAAC Grade</td>
-              {universities.map((uni, i) => <td key={i}>{uni ? formatNAAC(uni.ranking) : "-"}</td>)}
+              {selectedUniversities.map((uni, i) => <td key={i}>{uni ? formatNAAC(uni.ranking) : "-"}</td>)}
             </tr>
             <tr>
               <td>NIRF Ranking</td>
-              {universities.map((uni, i) => <td key={i}>{uni ? `#${uni.ranking}` : "-"}</td>)}
+              {selectedUniversities.map((uni, i) => <td key={i}>{uni ? `#${uni.ranking}` : "-"}</td>)}
             </tr>
             <tr>
               <td>Annual Fees</td>
-              {universities.map((uni, i) => <td key={i}>{uni ? `₹${uni.fees}/yr` : "-"}</td>)}
+              {selectedUniversities.map((uni, i) => <td key={i}>{uni ? `₹${uni.fees}/yr` : "-"}</td>)}
             </tr>
             <tr>
               <td>Placement %</td>
-              {universities.map((uni, i) => <td key={i}>{uni ? formatPlacement(uni.ranking) : "-"}</td>)}
+              {selectedUniversities.map((uni, i) => <td key={i}>{uni ? formatPlacement(uni.ranking) : "-"}</td>)}
             </tr>
             <tr>
               <td>Avg. Package</td>
-              {universities.map((uni, i) => <td key={i}>{uni ? uni.average_placement : "-"}</td>)}
+              {selectedUniversities.map((uni, i) => <td key={i}>{uni ? uni.average_placement : "-"}</td>)}
             </tr>
             <tr>
               <td>Established</td>
-              {universities.map((uni, i) => <td key={i}>{uni ? uni.established : "-"}</td>)}
+              {selectedUniversities.map((uni, i) => <td key={i}>{uni ? uni.established : "-"}</td>)}
+            </tr>
+            <tr>
+              <td>Required Exam</td>
+              {selectedUniversities.map((uni, i) => <td key={i}>{uni ? (uni.required_exam || "-") : "-"}</td>)}
+            </tr>
+            <tr>
+              <td>Avg Rank Req.</td>
+              {selectedUniversities.map((uni, i) => <td key={i}>{uni ? (uni.average_rank_required || "-") : "-"}</td>)}
             </tr>
           </tbody>
         </table>

@@ -1,3 +1,4 @@
+import './UniversityCard.css';
 import React from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
@@ -14,50 +15,53 @@ function UniversityCard({ uni }) {
   const naacGrade = parseInt(uni.ranking) <= 10 ? "A++" : (parseInt(uni.ranking) <= 30 ? "A+" : "A");
 
   // Format fees and placement to match wireframe style
-  const formattedFees = uni.fees ? `₹${uni.fees}/yr` : "N/A";
+  const formattedFees = uni.fees
+    ? (uni.fees.includes('₹') ? `${uni.fees}/yr` : `₹${uni.fees}/yr`)
+    : "N/A";
 
   // Extract number from placement like "18 LPA" to "95%" mock for the badge if needed, 
-  // actually the wireframe shows "Placement: 95%". Let's mock a percentage based on ranking.
-  const placementPercent = Math.max(75, 100 - parseInt(uni.ranking));
+  // actually the wireframe shows "Placement: 95%". We now show the real data.
+  // const placementPercent = uni.placement_percentage || "N/A";
 
-  const saved = isSaved(uni.id);
+  const saved = isSaved(uni._id);
 
   return (
     <div className="uni-card">
-      <div className="flex-between" style={{ alignItems: 'flex-start' }}>
-        <h3 style={{ paddingRight: '1rem' }}>{uni.name}</h3>
+      <div className="card-header">
+        <h3>{uni.name}</h3>
         <button
-          onClick={() => toggleSave(uni.id)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', padding: '0.25rem', color: saved ? '#111827' : '#9CA3AF' }}
+          className="save-btn"
+          onClick={() => toggleSave(uni._id)}
           title={saved ? "Remove from saved" : "Save university"}
+          style={{ color: saved ? '#111827' : '#9CA3AF' }}
         >
-          {saved ? '🔖' : '📑'} {/* Bookmark emojis: filled vs outline-ish */}
+          {saved ? '🔖' : '📑'}
         </button>
       </div>
 
-      <div className="card-meta">
-        <span className="flex-center" style={{ gap: '0.25rem' }}>
-          <span style={{ fontSize: '1rem' }}>📍</span> {/* Location pin simple emoji */}
-          {uni.location.split(',')[0]}
-        </span>
-        <span className="naac-badge">NAAC {naacGrade}</span>
-      </div>
-
-      <div className="card-stats">
-        <div>
-          <span>Fees:</span>
-          <strong>{formattedFees}</strong>
+      <div className="card-body">
+        <div className="card-meta">
+          <span className="card-location">
+            <span className="loc-icon">📍</span>
+            {uni.location.split(',')[0]}
+          </span>
+          <span className="naac-badge">NAAC {naacGrade}</span>
         </div>
-        <div>
-          <span>Placement:</span>
-          <strong>{placementPercent}%</strong>
+
+        <div className="card-stats">
+          <div>
+            <span>Fees:</span>
+            <strong>{formattedFees}</strong>
+          </div>
         </div>
       </div>
 
-      <div className="flex-between" style={{ marginTop: 'auto', gap: '0.5rem' }}>
-        <Link to={`/university/${uni.id}`} className="btn-outline" style={{ flex: 1, textAlign: 'center' }}>View Details</Link>
+      <div className="card-divider" />
+
+      <div className="card-footer">
+        <Link to={`/university/${uni._id}`} className="btn-outline">View Details</Link>
         {uni.website && (
-          <a href={uni.website} target="_blank" rel="noopener noreferrer" className="btn-black" style={{ flex: 1, textAlign: 'center' }}>Website</a>
+          <a href={uni.website} target="_blank" rel="noopener noreferrer" className="btn-black">Website</a>
         )}
       </div>
     </div>
@@ -72,7 +76,11 @@ UniversityCard.propTypes = {
     ranking: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     fees: PropTypes.string,
     average_placement: PropTypes.string,
-    website: PropTypes.string
+    website: PropTypes.string,
+    branches: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string,
+      cutoffRank: PropTypes.string
+    }))
   }).isRequired
 };
 

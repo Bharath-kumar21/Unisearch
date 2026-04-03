@@ -1,30 +1,33 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSaved } from "../context/SavedContext";
+import { useAuth } from "../context/AuthContext";
+import { useUniversity } from "../context/UniversityContext";
 import UniversityCard from "../components/UniversityCard";
-import universitiesData from "../data/universities.json";
 
 function Profile() {
     const navigate = useNavigate();
     const { savedUniversities } = useSaved();
+    const { user, logout } = useAuth(); // Use proper auth context
+    const { universities, loading } = useUniversity();
 
     // Map saved IDs to actual university data objects
     const savedData = savedUniversities
-        .map(id => universitiesData.find(u => u.id === id))
+        .map(id => universities.find(u => u._id === id))
         .filter(u => u !== undefined); // filter out any invalid/missing IDs
 
-    // Mock user state
-    const [user] = useState({
-        name: "John Doe",
-        email: "john@example.com",
-        joined: "Aug 2026",
-        reviews: 0
-    });
-
     const handleLogout = () => {
-        // In a real app this would clear auth cookies/tokens
+        logout();
         navigate("/login");
     };
+
+    if (!user) {
+        return null; // The protected route in App.js will handle redirect, but just in case
+    }
+
+    if (loading) {
+        return <div style={{ textAlign: "center", padding: "3rem" }}>Loading profile data...</div>;
+    }
 
     return (
         <div className="container page-layout" style={{ display: 'block' }}>
@@ -48,7 +51,7 @@ function Profile() {
                     <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '0.875rem' }}>
                             <span className="text-secondary">Joined</span>
-                            <span style={{ fontWeight: 500 }}>{user.joined}</span>
+                            <span style={{ fontWeight: 500 }}>{user.joined || 'Recently'}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '0.875rem' }}>
                             <span className="text-secondary">Saved Universities</span>
@@ -56,7 +59,7 @@ function Profile() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
                             <span className="text-secondary">Reviews Written</span>
-                            <span style={{ fontWeight: 500 }}>{user.reviews}</span>
+                            <span style={{ fontWeight: 500 }}>{user.reviews || 0}</span>
                         </div>
                     </div>
 
@@ -81,7 +84,7 @@ function Profile() {
                     ) : (
                         <div className="universities-grid">
                             {savedData.map(uni => (
-                                <UniversityCard key={uni.id} uni={uni} />
+                                <UniversityCard key={uni._id} uni={uni} />
                             ))}
                         </div>
                     )}

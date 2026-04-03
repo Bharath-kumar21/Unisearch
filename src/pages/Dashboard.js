@@ -1,20 +1,22 @@
 import React, { useMemo } from "react";
-import universitiesData from "../data/universities.json";
 import { Link } from "react-router-dom";
+import { useUniversity } from "../context/UniversityContext";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis
 } from 'recharts';
 
 function Dashboard() {
-  const totalUniversities = universitiesData.length;
-  const statesSet = new Set(universitiesData.map(u => u.location.split(', ').pop()));
+  const { universities, loading } = useUniversity();
+
+  const totalUniversities = universities.length;
+  const statesSet = new Set(universities.map(u => u.location.split(', ').pop()));
   const totalStates = statesSet.size;
 
   // 1. Data Prep for State Distribution (Bar Chart)
   const stateData = useMemo(() => {
     const counts = {};
-    universitiesData.forEach(u => {
+    universities.forEach(u => {
       const state = u.location.split(', ').pop();
       counts[state] = (counts[state] || 0) + 1;
     });
@@ -22,12 +24,12 @@ function Dashboard() {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10); // Top 10 states
-  }, []);
+  }, [universities]);
 
   // 2. Data Prep for NAAC Grades (Pie Chart) - Deriving from rank for mock data
   const naacData = useMemo(() => {
     const counts = { "A++": 0, "A+": 0, "A": 0 };
-    universitiesData.forEach(u => {
+    universities.forEach(u => {
       const rank = parseInt(u.ranking);
       if (rank <= 10) counts["A++"]++;
       else if (rank <= 30) counts["A+"]++;
@@ -38,18 +40,22 @@ function Dashboard() {
       { name: 'A+', value: counts["A+"] },
       { name: 'A', value: counts["A"] }
     ];
-  }, []);
+  }, [universities]);
 
   const COLORS = ['#111827', '#4B5563', '#9CA3AF'];
 
   // 3. Data Prep for Fees vs Placement (Scatter Chart)
   const scatterData = useMemo(() => {
-    return universitiesData
+    return universities
       .filter(u => u.fees) // Only those with fees listed
       .map(u => {
         let numericFees = 0;
-        if (u.fees.endsWith('L')) numericFees = parseFloat(u.fees.replace('L', ''));
-        else if (u.fees.endsWith('K')) numericFees = parseFloat(u.fees.replace('K', '')) / 100; // convert to L
+        if (typeof u.fees === 'string') {
+          if (u.fees.endsWith('L')) numericFees = parseFloat(u.fees.replace('L', ''));
+          else if (u.fees.endsWith('K')) numericFees = parseFloat(u.fees.replace('K', '')) / 100; // convert to L
+        } else {
+          numericFees = u.fees / 100000;
+        }
 
         // Mock placement% based on rank to correspond to card ui
         const placementPercent = Math.max(75, 100 - parseInt(u.ranking));
@@ -60,7 +66,11 @@ function Dashboard() {
           placement: placementPercent
         };
       });
-  }, []);
+  }, [universities]);
+
+  if (loading) {
+    return <div style={{ textAlign: "center", padding: "3rem" }}>Loading dashboard data...</div>;
+  }
 
   return (
     <div className="container page-layout" style={{ display: 'block' }}>
