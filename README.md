@@ -2,7 +2,7 @@
 
 A full-stack web application that helps Indian students discover, compare, and shortlist engineering universities based on entrance exam type, rank, location, fees, and more. Built with **React**, **Node.js/Express**, and **MongoDB**.
 
-> **Live URL (GitHub Pages — frontend only):** [https://Bharath-kumar21.github.io/university-platform](https://Bharath-kumar21.github.io/university-platform)
+> **Live URL (GitHub Pages — frontend only):** [https://Bharath-kumar21.github.io/unisearch](https://Bharath-kumar21.github.io/unisearch)
 
 ---
 
@@ -288,8 +288,8 @@ university-platform/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Bharath-kumar21/university-platform.git
-cd university-platform
+git clone https://github.com/Bharath-kumar21/unisearch.git
+cd unisearch
 
 # 2. Install dependencies
 npm install
