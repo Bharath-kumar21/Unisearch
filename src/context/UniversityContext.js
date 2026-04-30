@@ -8,7 +8,7 @@ export const UniversityProvider = ({ children }) => {
     const [error, setError] = useState(null);
 
     // Using the same convention as AuthContext to align with package.json proxy or explicit URL
-    const API_URL = 'http://localhost:5000';
+    const API_URL = 'https://unisearch-api.onrender.com';
 
     useEffect(() => {
         const fetchUniversities = async () => {

@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(localStorage.getItem('token') || null);
     const [loading, setLoading] = useState(true);
 
-    const API_URL = 'http://localhost:5000/api';
+    const API_URL = 'https://unisearch-api.onrender.com/api';
 
     useEffect(() => {
         // If there's a token, fetch the user profile
