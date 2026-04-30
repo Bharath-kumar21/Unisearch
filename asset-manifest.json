@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/unisearch/static/css/main.1b94cf39.css",
+    "main.js": "/unisearch/static/js/main.c398a342.js",
+    "index.html": "/unisearch/index.html",
+    "main.1b94cf39.css.map": "/unisearch/static/css/main.1b94cf39.css.map",
+    "main.c398a342.js.map": "/unisearch/static/js/main.c398a342.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.1b94cf39.css",
+    "static/js/main.c398a342.js"
+  ]
+}
