@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/unisearch/static/css/main.1b94cf39.css",
-    "main.js": "/unisearch/static/js/main.c398a342.js",
-    "index.html": "/unisearch/index.html",
-    "main.1b94cf39.css.map": "/unisearch/static/css/main.1b94cf39.css.map",
-    "main.c398a342.js.map": "/unisearch/static/js/main.c398a342.js.map"
+    "main.css": "/Unisearch/static/css/main.1b94cf39.css",
+    "main.js": "/Unisearch/static/js/main.42326a46.js",
+    "index.html": "/Unisearch/index.html",
+    "main.1b94cf39.css.map": "/Unisearch/static/css/main.1b94cf39.css.map",
+    "main.42326a46.js.map": "/Unisearch/static/js/main.42326a46.js.map"
   },
   "entrypoints": [
     "static/css/main.1b94cf39.css",
-    "static/js/main.c398a342.js"
+    "static/js/main.42326a46.js"
   ]
 }
