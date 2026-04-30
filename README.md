@@ -2,7 +2,7 @@
 
 A full-stack web application that helps Indian students discover, compare, and shortlist engineering universities based on entrance exam type, rank, location, fees, and more. Built with **React**, **Node.js/Express**, and **MongoDB**.
 
-> **Live URL (GitHub Pages — frontend only):** [https://Bharath-kumar21.github.io/unisearch](https://Bharath-kumar21.github.io/unisearch)
+> **Live URL:** [https://Bharath-kumar21.github.io/Unisearch](https://Bharath-kumar21.github.io/Unisearch)
 
 ---
 
@@ -16,8 +16,6 @@ A full-stack web application that helps Indian students discover, compare, and s
 - [API Endpoints](#-api-endpoints)
 - [Pages & UI Walkthrough](#-pages--ui-walkthrough)
 - [Getting Started](#-getting-started)
-- [Database Seeding](#-database-seeding)
-- [Updating Branch Cutoff Ranks](#-updating-branch-cutoff-ranks)
 - [Environment Variables](#-environment-variables)
 - [Deployment](#-deployment)
 - [Scripts Reference](#-scripts-reference)
@@ -117,39 +115,18 @@ A full-stack web application that helps Indian students discover, compare, and s
 ```
 university-platform/
 ├── models/                          # Mongoose schema definitions
-│   ├── University.js                #   University model (name, location, ranking, fees, branches, etc.)
-│   └── User.js                      #   User model (name, email, hashed password, join date, reviews)
-├── public/                          # Static assets served by CRA
+│   ├── University.js                #   University model
+│   └── User.js                      #   User model
+├── public/                          # Static assets
 ├── src/
 │   ├── components/                  # Reusable UI components
-│   │   ├── Navbar.js / Navbar.css   #   Top navigation bar with global search
-│   │   ├── Footer.js / Footer.css   #   Site footer with links and contact info
-│   │   ├── UniversityCard.js/.css   #   University listing card with save button
-│   │   └── SearchBar.js            #   Search bar component
-│   ├── context/                     # React Context providers (global state)
-│   │   ├── AuthContext.js           #   Authentication state (user, token, login, signup, logout)
-│   │   ├── UniversityContext.js     #   University data fetching and caching
-│   │   └── SavedContext.js          #   Saved/bookmarked university IDs (localStorage)
-│   ├── data/                        # Static/source data files
-│   │   ├── universities.json        #   Master JSON dataset (~440KB, all universities)
-│   │   └── University-*.xlsx        #   Excel source files for data import
+│   ├── context/                     # React Context providers
 │   ├── pages/                       # Route-level page components
-│   │   ├── Home.js / Home.css       #   Landing page with exam + rank search
-│   │   ├── Universities.js/.css     #   Filterable, paginated university listing
-│   │   ├── UniversityDetails.js     #   Single university detail view
-│   │   ├── Compare.js / Compare.css #   Side-by-side comparison (up to 3)
-│   │   ├── Dashboard.js            #   Analytics dashboard with charts
-│   │   ├── Login.js                 #   Login form
-│   │   ├── SignUp.js                #   Registration form
-│   │   └── Profile.js              #   User profile with saved universities
-│   ├── services/
-│   │   └── api.js                   #   API service layer (placeholder)
-│   ├── App.js                       #   Root component with routing and context providers
-│   ├── App.css                      #   Global styles and CSS variables
-│   └── index.js                     #   React entry point
+│   ├── services/                    # API service layer
+│   ├── App.js                       # Root component
+│   ├── App.css                      # Global styles
+│   └── index.js                     # React entry point
 ├── server.js                        # Express API server
-├── seed.js                          # Database seeding script
-├── update_ranks.js                  # Utility to update branch cutoff ranks
 ├── package.json                     # Dependencies and scripts
 └── README.md                        # This file
 ```
@@ -288,8 +265,8 @@ university-platform/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Bharath-kumar21/unisearch.git
-cd unisearch
+git clone https://github.com/Bharath-kumar21/Unisearch.git
+cd Unisearch
 
 # 2. Install dependencies
 npm install
@@ -309,47 +286,12 @@ npm start
 
 | Service | URL |
 |---|---|
-| React Frontend | [http://localhost:3000](http://localhost:3000) |
-| Express API Server | [http://localhost:5000](http://localhost:5000) |
+| Live Website | [https://Bharath-kumar21.github.io/Unisearch](https://Bharath-kumar21.github.io/Unisearch) |
+| Backend API | `https://unisearch-api.onrender.com` |
 
 The app opens in your browser automatically. Both the server and client run concurrently via the `concurrently` package.
 
 ---
-
-## 🌱 Database Seeding
-
-The `seed.js` script reads from `src/data/universities.json` and populates the MongoDB `universities` collection with enriched data.
-
-```bash
-node seed.js
-```
-
-**What it does:**
-1. Connects to MongoDB (uses `MONGO_URI` env var or defaults to `mongodb://localhost:27017/university_platform`)
-2. Reads the static JSON dataset from `src/data/universities.json`
-3. **Clears** the existing `universities` collection to avoid duplicates
-4. Enriches records with computed fallback values for any missing fields:
-   - `fees` — estimated based on institution type (Public: ₹1L-3L, Private: ₹15L-25L)
-   - `average_placement` — estimated based on ranking tier
-   - `placement_percentage` — computed as `max(75, 100 - ranking)%`
-   - `required_exam` — derived from ranking + type (Top 25 Public → JEE Advanced, etc.)
-   - `average_rank_required` — derived from ranking tier
-   - `branches` — 7 default engineering branches with cutoffs scaled by ranking
-5. Inserts all enriched records into MongoDB
-
----
-
-## 📈 Updating Branch Cutoff Ranks
-
-The `update_ranks.js` script updates branch-wise cutoff ranks for top universities using verified JEE Advanced/Main data.
-
-```bash
-node update_ranks.js
-```
-
-**Currently updates:** IIT Bombay, IIT Delhi, IIT Madras, IIT Kanpur, IIT Kharagpur, IIT Roorkee, IIT Guwahati, IIT Hyderabad, IIT BHU Varanasi, NIT Trichy, NIT Karnataka, NIT Rourkela, and Jadavpur University.
-
-> **Note:** This script updates the local `src/data/universities.json` file. Run `node seed.js` afterwards to push the changes to MongoDB.
 
 ---
 
@@ -371,15 +313,16 @@ MONGO_URI=mongodb://localhost:27017/university_platform
 
 ## 🌐 Deployment
 
-### GitHub Pages (Frontend Only)
+### GitHub Pages (Frontend)
 
 ```bash
 npm run deploy
 ```
 
-This runs `npm run build` (predeploy hook) and then publishes the `build/` folder to GitHub Pages. The `homepage` field in `package.json` is set to `https://Bharath-kumar21.github.io/university-platform`.
+This builds the app and publishes the `build/` folder to the `gh-pages` branch. The `homepage` field in `package.json` is set to `https://Bharath-kumar21.github.io/Unisearch`.
 
-> **Important:** GitHub Pages serves only the static frontend. You need a separately hosted backend (e.g., Render, Railway, Vercel Serverless) for the Express API and MongoDB to work in production.
+### Render (Backend)
+The Express server is hosted on Render at `https://unisearch-api.onrender.com`.
 
 ### Full-Stack Deployment
 
