@@ -2,7 +2,7 @@
   "name": "unisearch",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://Bharath-kumar21.github.io/unisearch",
+  "homepage": "https://Bharath-kumar21.github.io/Unisearch",
   "dependencies": {
     "axios": "^1.6.2",
     "bcryptjs": "^3.0.3",

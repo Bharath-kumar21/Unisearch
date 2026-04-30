@@ -28,7 +28,7 @@ function App() {
     <AuthProvider>
       <UniversityProvider>
         <SavedProvider>
-          <Router basename="/unisearch">
+          <Router basename="/Unisearch">
             <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
               <Navbar />
               <main style={{ flex: 1 }}>
